@@ -68,7 +68,7 @@ const DoctorsList: React.FC = () => {
 
   const handleBooking = () => {
     if (isAuthenticated()) {
-      navigate("/sessions"); // Redirect to booking page
+      navigate("/register"); // Redirect to booking page
     } else {
       navigate("/register"); // Redirect to register page if not logged in
     }

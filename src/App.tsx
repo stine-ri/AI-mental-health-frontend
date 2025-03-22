@@ -29,6 +29,15 @@ import Bookings from "./pages/Admin/Bookings";
 import Therapists from "./pages/Admin/Therapists";
 import Payments from "./pages/Admin/Payments";
 import TherapistsDashboard from "./pages/Therapists/TherapistsDashboard";
+import BookPayment from "./Components/BookPayment";
+import Confirmation from "./Components/Confirmation";
+import UserBookings from "./Components/UserBookings";
+import TherapistsBookings from "./Components/Therapists/TherapistsSession";
+import AppointmentsRequests from "./Components/Therapists/AppointmentRequests";
+import PatientOverview from "./Components/Therapists/PatientsOverview";
+import UserMessage from "./Components/UserMessage";
+import Profile from "./Components/Therapists/Profile";
+import Settings from "./Components/Therapists/Settings";
 import "react-toastify/dist/ReactToastify.css"; // Import toast styles
 import "./index.css";
 
@@ -64,6 +73,15 @@ function App() {
         <Route path="/admin/therapists" element={<Therapists />} />
         <Route path="/admin/payments" element={<Payments />} />
         <Route path="/therapist-dashboard/:id" element={<TherapistsDashboard />} />
+        <Route path="/book-payment" element={<BookPayment />} />
+        <Route path="/confirmation" element={<Confirmation />} />
+        <Route path="/user-bookings" element={<UserBookings />} />
+        <Route path="/therapist-bookings" element={<TherapistsBookings therapistId={3} />} />
+        <Route path="/appointments-requests" element={<AppointmentsRequests therapistId={3} />} />
+        <Route path="/patient-overview/:id" element={<PatientOverview />} />
+        <Route path="/user-message" element={<UserMessage />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/settings" element={<Settings />} />
         <Route
            path="/checkout"
            element={<CheckoutPage amount={100} />} // Pass an amount (e.g., 100)

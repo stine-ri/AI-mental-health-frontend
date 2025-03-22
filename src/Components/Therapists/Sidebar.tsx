@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import { FaBars, FaTimes, FaCalendar, FaCreditCard, FaComments, FaCog, FaSignOutAlt } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
+import { FaBars, FaTimes, FaCalendar, FaHeadSideVirus, FaComments, FaCog, FaSignOutAlt } from "react-icons/fa";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -7,6 +7,17 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // Clear authentication data from local storage
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    // Navigate to the Login page
+    navigate("/login");
+  };
+
   return (
     <div 
       className={`fixed left-0 top-16 bg-green-900 text-white p-5 flex flex-col 
@@ -23,14 +34,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
       {/* Navigation */}
       <nav className="flex flex-col space-y-6 text-lg">
-        <Link to="/sessions" className="flex items-center gap-3 p-2 rounded hover:bg-green-700 transition">
+        <Link to="/therapist-bookings" className="flex items-center gap-3 p-2 rounded hover:bg-green-700 transition">
           <FaCalendar size={24} /> <span className={`${isOpen ? "inline" : "hidden"} transition-all`}>Sessions</span>
         </Link>
-        <Link to="/appointments" className="flex items-center gap-3 p-2 rounded hover:bg-green-700 transition">
+        <Link to="/appointments-requests" className="flex items-center gap-3 p-2 rounded hover:bg-green-700 transition">
           <FaCalendar size={24} /> <span className={`${isOpen ? "inline" : "hidden"} transition-all`}>Appointments</span>
         </Link>
-        <Link to="/checkout" className="flex items-center gap-3 p-2 rounded hover:bg-green-700 transition">
-          <FaCreditCard size={24} /> <span className={`${isOpen ? "inline" : "hidden"} transition-all`}>Payments</span>
+        <Link to="/patient-overview/:id" className="flex items-center gap-3 p-2 rounded hover:bg-green-700 transition">
+          <FaHeadSideVirus size={24} /> <span className={`${isOpen ? "inline" : "hidden"} transition-all`}>Patients</span>
         </Link>
         <Link to="/chatbot" className="flex items-center gap-3 p-2 rounded hover:bg-green-700 transition">
           <FaComments size={24} /> <span className={`${isOpen ? "inline" : "hidden"} transition-all`}>Chatbot</span>
@@ -40,7 +51,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         </Link>
 
         {/* Logout Button */}
-        <button className="flex items-center gap-3 p-2 text-red-400 hover:bg-red-700 rounded transition">
+        <button 
+          onClick={handleLogout} 
+          className="flex items-center gap-3 p-2 text-red-400 hover:bg-red-700 hover:text-white rounded transition"
+        >
           <FaSignOutAlt size={24} /> <span className={`${isOpen ? "inline" : "hidden"} transition-all`}>Logout</span>
         </button>
       </nav>

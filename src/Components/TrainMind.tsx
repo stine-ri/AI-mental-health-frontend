@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import train1 from "../assets/images/survivor.jpg";
 import train2 from "../assets/images/Docs.jpg";
 import train3 from "../assets/images/anxiety.jpg";
@@ -19,11 +20,11 @@ const trainingResources = [
 ];
 
 const TrainMind: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="py-16 bg-green-50 text-center">
-      <h2 className="text-3xl font-bold text-green-900 mb-8">
-        Train Your Mind With Us
-      </h2>
+      <h2 className="text-3xl font-bold text-green-900 mb-8">Train Your Mind With Us</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 px-6">
         {trainingResources.map((resource, index) => (
           <div
@@ -36,7 +37,10 @@ const TrainMind: React.FC = () => {
               className="w-full h-48 object-cover rounded-lg mb-4"
             />
             <h3 className="text-lg font-semibold text-green-900">{resource.title}</h3>
-            <button className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-300">
+            <button
+              className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-300"
+              onClick={() => navigate("/booktraining")}
+            >
               Learn More
             </button>
           </div>

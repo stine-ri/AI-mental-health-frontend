@@ -13,6 +13,7 @@ const BookSession: React.FC = () => {
     specialization: string;
     experience_years: number;
     contact_phone: string;
+    availability: boolean;
   }
 
   const [therapists, setTherapists] = useState<Therapist[]>([]);
@@ -21,15 +22,13 @@ const BookSession: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState(true);
 
-  // Retrieve user and token correctly
   const storedUser = localStorage.getItem("user");
-  const userId = storedUser ? JSON.parse(storedUser).user.id : 0;
+  const user = storedUser ? JSON.parse(storedUser).user : null;
   const token = localStorage.getItem("token");
 
-  // Parse IDs safely
   const therapistId = paramTherapistId || searchParams.get("therapistId");
   const therapistIdNum = therapistId ? Number(therapistId) : NaN;
-  const userIdNum = Number(userId);
+  const userIdNum = user ? Number(user.id) : NaN;
 
   useEffect(() => {
     if (!token) {
@@ -51,8 +50,8 @@ const BookSession: React.FC = () => {
     }
 
     const fetchTherapists = async () => {
-      setIsFetching(true);
       try {
+        setIsFetching(true);
         const response = await fetch("https://ai-mentalhealthplatform.onrender.com/api/therapists", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -62,40 +61,34 @@ const BookSession: React.FC = () => {
         }
 
         const data = await response.json();
+        console.log("Fetched Therapists (Raw):", data);
+
         setTherapists(data);
         localStorage.setItem("therapists", JSON.stringify(data));
-      } catch {
+      } catch (err) {
+        console.error("Error fetching therapists:", err);
         setError("Error loading therapists. Please try again.");
       } finally {
         setIsFetching(false);
       }
     };
 
-    try {
-      const storedTherapists = JSON.parse(localStorage.getItem("therapists") || "[]");
-      if (Array.isArray(storedTherapists) && storedTherapists.length > 0) {
-        setTherapists(storedTherapists);
-        setIsFetching(false);
-      } else {
-        fetchTherapists();
-      }
-    } catch {
+    const storedTherapists = JSON.parse(localStorage.getItem("therapists") || "[]");
+    if (Array.isArray(storedTherapists) && storedTherapists.length > 0) {
+      setTherapists(storedTherapists);
+      setIsFetching(false);
+    } else {
       fetchTherapists();
     }
-  }, [token]);
+  }, [token, therapistIdNum, userIdNum]);
 
-  if (error) {
-    return <p className="text-center mt-10 text-red-500">{error}</p>;
-  }
-
-  if (isFetching) {
-    return <p className="text-center mt-10">Loading therapists...</p>;
-  }
+  if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
+  if (isFetching) return <p className="text-center mt-10">Loading therapists...</p>;
 
   const therapist = therapists.find((doc) => doc.id === therapistIdNum);
-  if (!therapist) {
-    return <p className="text-center mt-10 text-red-500">Therapist not found.</p>;
-  }
+  console.log("Selected Therapist:", therapist);
+
+  if (!therapist) return <p className="text-center mt-10 text-red-500">Therapist not found.</p>;
 
   const handleConfirmBooking = async () => {
     setLoading(true);
@@ -125,7 +118,7 @@ const BookSession: React.FC = () => {
       }
 
       alert("Session booked successfully!");
-      navigate("/checkout");
+      navigate("/book-payment");
     } catch (error) {
       setError(error instanceof Error ? error.message : "Network error. Please try again.");
     } finally {
@@ -144,6 +137,7 @@ const BookSession: React.FC = () => {
         <p><strong>Specialization:</strong> {therapist.specialization}</p>
         <p><strong>Experience:</strong> {therapist.experience_years} years</p>
         <p><strong>Contact:</strong> {therapist.contact_phone}</p>
+        <p><strong>Availability:</strong> Available ✅</p>
         <p><strong>Date:</strong> {dayjs().format("DD MMM YYYY")}</p>
       </div>
 
@@ -155,7 +149,7 @@ const BookSession: React.FC = () => {
       ></textarea>
 
       <button
-        className="w-full mt-4 bg-green-500 text-white py-2 rounded hover:bg-green-600 transition"
+        className="w-full mt-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
         onClick={handleConfirmBooking}
         disabled={loading}
       >

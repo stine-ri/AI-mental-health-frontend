@@ -1,23 +1,29 @@
-import { FaSearch, FaUserCircle } from "react-icons/fa";
+import { FaUserCircle } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 const Header = () => {
-  return (
-    <div className="flex justify-between items-center p-4 bg-white shadow-md">
-      {/* Search Bar - Adjusts for Mobile */}
-      <div className="flex items-center gap-2 w-full sm:w-auto">
-        <FaSearch className="text-gray-500 text-lg" />
-        <input 
-          type="text" 
-          placeholder="Search" 
-          className="outline-none hidden sm:block bg-gray-100 rounded-md px-2 py-1 w-60"
-        />
-      </div>
+  const [therapistName, setTherapistName] = useState<string>("Therapist");
 
-      {/* Profile Section - Clickable */}
+  useEffect(() => {
+    const loginData = localStorage.getItem("loginResponse");
+
+    if (loginData) {
+      const parsedData = JSON.parse(loginData);
+      const fullName = parsedData.user?.full_name;
+      if (fullName) setTherapistName(fullName);
+    }
+  }, []);
+
+  return (
+    <div className="flex justify-between items-center p-4 bg-green-500 text-white shadow-md">
+      {/* Welcome Text */}
+      <h2 className="text-2xl font-semibold">Welcome, {therapistName}!</h2>
+
+      {/* Profile Icon - Redirects to /profile */}
       <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
-        <p className="text-gray-700 hidden md:block">Dr. C.Monyancha</p>
-        <FaUserCircle className="text-gray-500 text-3xl md:text-2xl hover:text-green-500 transition duration-200" />
+        <p className="hidden md:block">Profile</p>
+        <FaUserCircle className="text-white text-3xl md:text-2xl hover:text-green-200 transition duration-200" />
       </Link>
     </div>
   );

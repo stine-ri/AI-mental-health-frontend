@@ -14,52 +14,53 @@ const Login: React.FC = () => {
     e.preventDefault();
     setError(null);
     setLoading(true);
-
-    const credentials = { email, password };
-
+  
     try {
       const response = await fetch("https://ai-mentalhealthplatform.onrender.com/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(credentials),
+        body: JSON.stringify({ email, password }),
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Login failed");
       }
-
+  
       const data = await response.json();
-      console.log("Login Response:", data);
-
+      console.log("Login Response Data:", data);
+  
       if (!data.token || !data.user || !data.user.role) {
         throw new Error("Invalid response from server");
       }
-
-      // Store token, user info, and role in localStorage
+  
+      // ✅ Store token, user, and role separately
       localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      localStorage.setItem("role", data.user.role);
-
-      console.log("User Info:", data.user);
-
-      // Redirect based on user role
-      if (data.user.role === "therapist") {
+      localStorage.setItem("user", JSON.stringify(data.user)); // Correct way
+      localStorage.setItem("role", data.user.role); // Role should be stored independently
+  
+      console.log("User Info Stored:", JSON.parse(localStorage.getItem("user") || "{}"));
+      console.log("User Role Stored:", localStorage.getItem("role"));
+  
+      // ✅ Redirect based on user role
+      const userRole = data.user.role;
+      if (userRole === "therapist") {
         navigate(`/therapist-dashboard/${data.user.id}`);
-      } else if (data.user.role === "admin") {
+      } else if (userRole === "admin") {
         navigate("/admin-dashboard");
       } else {
         navigate("/user-dashboard");
       }
     } catch (error) {
-      console.error("Error during login:", error);
+      console.error("Login Error:", error);
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <div

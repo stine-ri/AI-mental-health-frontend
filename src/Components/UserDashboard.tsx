@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { FaCalendarAlt, FaChartLine, FaVideo, FaBars, FaTimes, FaHome, FaUserMd, FaMoneyBill, FaRobot, FaSignOutAlt } from "react-icons/fa";
+import { useState } from "react";
+import { FaCalendarAlt,FaRegComment , FaChartLine, FaVideo, FaBars, FaTimes, FaHome, FaUserMd,  FaRobot, FaSignOutAlt } from "react-icons/fa";
+// FaMoneyBill,
 import { Link, useNavigate } from "react-router-dom";
 import { Bar } from "react-chartjs-2";
 import "chart.js/auto";
@@ -42,7 +43,7 @@ const UserDashboard = () => {
 
   // Handle Logout
   const handleLogout = () => {
-    navigate("/signin"); // Redirect to sign-in page
+    navigate("/login"); // Redirect to sign-in page
   };
 
   return (
@@ -63,7 +64,7 @@ const UserDashboard = () => {
               </Link>
             </li>
             <li className="mb-4">
-              <Link to="/appointments" className="flex items-center p-2 hover:bg-green-600 rounded">
+              <Link to="/user-bookings" className="flex items-center p-2 hover:bg-green-600 rounded">
                 <FaCalendarAlt className="mr-3" /> Appointments
               </Link>
             </li>
@@ -78,8 +79,8 @@ const UserDashboard = () => {
               </Link>
             </li>
             <li className="mb-4">
-              <Link to="/checkout" className="flex items-center p-2 hover:bg-green-600 rounded">
-                <FaMoneyBill className="mr-3" /> Payment
+              <Link to="/user-message" className="flex items-center p-2 hover:bg-green-600 rounded">
+                <FaRegComment  className="mr-3" /> Messages
               </Link>
             </li>
             <li className="mb-4">
