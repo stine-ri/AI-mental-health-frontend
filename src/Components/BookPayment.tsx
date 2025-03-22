@@ -133,7 +133,7 @@ const BookPayment: React.FC = () => {
     };
 
     try {
-      const response = await fetch("http://localhost:3000/api/initiate", {
+      const response = await fetch("http://localhost:8000/api/initiate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
