@@ -82,7 +82,7 @@ const Bookings = ({ therapistId }: { therapistId: number }) => {
     console.log("Sending Meet Link - Booking ID:", bookingId, "Meet Link:", meetLink);
 
     try {
-      const response = await fetch(`https://ai-mentalhealthplatform.onrender.com/api/send-meet-link`, {
+      const response = await fetch(`http://localhost:8000/api/send-meet-link`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bookingId, meetLink }),
