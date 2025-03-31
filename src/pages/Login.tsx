@@ -14,36 +14,42 @@ const Login: React.FC = () => {
     e.preventDefault();
     setError(null);
     setLoading(true);
-  
+
     try {
-      const response = await fetch("https://ai-mentalhealthplatform.onrender.com/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-  
+      const response = await fetch(
+        "https://ai-mentalhealthplatform.onrender.com/api/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+        }
+      );
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Login failed");
       }
-  
+
       const data = await response.json();
       console.log("Login Response Data:", data);
-  
+
       if (!data.token || !data.user || !data.user.role) {
         throw new Error("Invalid response from server");
       }
-  
+
       // ✅ Store token, user, and role separately
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user)); // Correct way
       localStorage.setItem("role", data.user.role); // Role should be stored independently
-  
-      console.log("User Info Stored:", JSON.parse(localStorage.getItem("user") || "{}"));
+
+      console.log(
+        "User Info Stored:",
+        JSON.parse(localStorage.getItem("user") || "{}")
+      );
       console.log("User Role Stored:", localStorage.getItem("role"));
-  
+
       // ✅ Redirect based on user role
       const userRole = data.user.role;
       if (userRole === "therapist") {
@@ -60,7 +66,6 @@ const Login: React.FC = () => {
       setLoading(false);
     }
   };
-  
 
   return (
     <div
@@ -89,6 +94,16 @@ const Login: React.FC = () => {
             required
             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
           />
+
+          <div className="text-right">
+            <span
+              onClick={() => navigate("/forgot-password")}
+              className="text-green-700 cursor-pointer hover:underline text-sm"
+            >
+              Forgot Password?
+            </span>
+          </div>
+
           <button
             type="submit"
             className="w-full bg-green-700 text-white py-3 rounded-lg hover:bg-green-800 transition"
@@ -97,6 +112,7 @@ const Login: React.FC = () => {
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
+
         <p className="mt-4 text-gray-600">
           Don't have an account?{" "}
           <span

@@ -39,12 +39,17 @@ import UserMessage from "./Components/UserMessage";
 import Profile from "./Components/Therapists/Profile";
 import Settings from "./Components/Therapists/Settings";
 import "react-toastify/dist/ReactToastify.css"; // Import toast styles
+import DoctorsListWithoutBooking from "./Components/DetailedDoctor";
 import "./index.css";
-
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import ForgotPassword from "./Components/ForgotPassword";
+import ResetPassword from "./Components/ResetPassword";
 function App() {
 
   return (
     <Router>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
       <Toaster position="top-right" />
       <Header />
       <Routes>
@@ -77,11 +82,15 @@ function App() {
         <Route path="/confirmation" element={<Confirmation />} />
         <Route path="/user-bookings" element={<UserBookings />} />
         <Route path="/therapist-bookings" element={<TherapistsBookings therapistId={3} />} />
-        <Route path="/appointments-requests" element={<AppointmentsRequests therapistId={3} />} />
+        <Route path="/appointments-requests" element={<AppointmentsRequests  />} />
         <Route path="/patient-overview/:id" element={<PatientOverview />} />
         <Route path="/user-message" element={<UserMessage />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/doctor-without-booking" element={<DoctorsListWithoutBooking />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:id" element={<ResetPassword />} />
+
         <Route
            path="/checkout"
            element={<CheckoutPage amount={100} />} // Pass an amount (e.g., 100)

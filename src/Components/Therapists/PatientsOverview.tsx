@@ -8,15 +8,15 @@ interface Patient {
 }
 
 const patientsData: Patient[] = [
-  { id: 1, name: "John Doe", state: "Anxious", messages: [{ sender: "John", text: "I've been feeling anxious lately." }] },
-  { id: 2, name: "Jane Smith", state: "Depressed", messages: [{ sender: "Jane", text: "I feel like nothing is going right." }] },
-  { id: 3, name: "Alice Brown", state: "Stressed", messages: [{ sender: "Alice", text: "Work has been overwhelming." }] },
-  { id: 4, name: "Mike Johnson", state: "Angry", messages: [{ sender: "Mike", text: "I can't control my temper sometimes." }] },
-  { id: 5, name: "Emma Davis", state: "Fearful", messages: [{ sender: "Emma", text: "I'm afraid of failing." }] },
-  { id: 6, name: "Chris Wilson", state: "Sad", messages: [{ sender: "Chris", text: "I feel down most of the time." }] },
-  { id: 7, name: "Sophia Martinez", state: "Confused", messages: [{ sender: "Sophia", text: "I don't know what to do with my life." }] },
-  { id: 8, name: "Oliver Green", state: "Nervous", messages: [{ sender: "Oliver", text: "I feel nervous about upcoming exams." }] },
-  { id: 9, name: "Isabella White", state: "Lonely", messages: [{ sender: "Isabella", text: "I feel like no one understands me." }] },
+  { id: 1, name: "Christine Nyabwari", state: "Anxious", messages: [{ sender: "Christine", text: "I've been feeling anxious lately." }] },
+  { id: 2, name: "Ryan Kasire", state: "Depressed", messages: [{ sender: "Ryan", text: "I feel like nothing is going right." }] },
+  { id: 3, name: "Abdirahman Sadiki", state: "Stressed", messages: [{ sender: "Sadiki", text: "Work has been overwhelming." }] },
+  { id: 4, name: "Cyrus Kimutai", state: "Angry", messages: [{ sender: "Cyrus", text: "I can't control my temper sometimes." }] },
+  { id: 5, name: "Faith Peter", state: "Fearful", messages: [{ sender: "Faith", text: "I'm afraid of failing." }] },
+  { id: 6, name: "Chris Mutua", state: "Sad", messages: [{ sender: "Chris", text: "I feel down most of the time." }] },
+  { id: 7, name: "Sophia Kweyu", state: "Confused", messages: [{ sender: "Sophia", text: "I don't know what to do with my life." }] },
+  { id: 8, name: "Oliver Afanda", state: "Nervous", messages: [{ sender: "Oliver", text: "I feel nervous about upcoming exams." }] },
+  { id: 9, name: "Isabella Moraa", state: "Lonely", messages: [{ sender: "Isabella", text: "I feel like no one understands me." }] },
 ];
 
 const PatientMessages = () => {

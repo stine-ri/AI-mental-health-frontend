@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import psychiatristImg from "../assets/images/Doc 1.webp";
@@ -8,11 +9,7 @@ import neuropsychiatristImg from "../assets/images/Doc5.avif";
 import socialWorkerImg from "../assets/images/Doc 2.webp";
 import fallbackImg from "../assets/images/kim2doc.webp"; 
 
-// Check if user is authenticated
-const isAuthenticated = () => {
-  const user = localStorage.getItem("user");
-  return user !== null;
-};
+
 
 // Therapist Type
 interface Therapist {
@@ -31,11 +28,11 @@ interface Therapist {
 // Image Mapping for Specializations
 const specializationImages: Record<string, string> = {
   "Psychiatrist": psychiatristImg,
-  "Psychologist": socialWorkerImg,
+  "Psychologist": psychologistImg,
   "Therapist": therapistImg,
   "Licensed Counselor": counselorImg,
   "Neuropsychiatrist": neuropsychiatristImg,
-  "Clinical Social Worker": psychologistImg,
+  "Clinical Social Worker": socialWorkerImg,
 };
 
 // Default Data for Specializations
@@ -158,15 +155,13 @@ const DoctorsList: React.FC = () => {
       });
   }, []);
 
+ 
+  // Booking handler always redirects to login
   const handleBooking = () => {
-    if (isAuthenticated()) {
-      console.log("✅ User is authenticated. Redirecting to /sessions");
-      navigate("/sessions");
-    } else {
-      console.log("❌ User not authenticated. Redirecting to /register");
-      navigate("/register");
-    }
+    console.log("Redirecting to /login...");
+    navigate("/login"); // Always redirect to login
   };
+
 
   return (
     <section className="py-16 px-6 bg-gray-100">

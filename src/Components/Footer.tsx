@@ -24,7 +24,7 @@ const Footer: React.FC = () => {
         <span>0798 765 432</span>
       </div>
 
-      <p className="mt-4 text-sm">© 2024 Mindful. All Rights Reserved.</p>
+      <p className="mt-4 text-sm">© 2025 Mindful. All Rights Reserved.</p>
     </footer>
   );
 };
