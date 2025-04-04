@@ -54,7 +54,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-green-100 p-6 rounded-lg shadow-lg mt-8">
+    <div className="max-w-md mx-auto bg-green-100 p-6 rounded-lg shadow-lg mt-8 mb-8"> {/* Added mb-8 here for bottom margin */}
       <h2 className="text-3xl font-bold text-green-800 mb-6 text-center">Update Profile</h2>
 
       {/* Profile Image Section */}

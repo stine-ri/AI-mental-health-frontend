@@ -1,170 +1,3 @@
-// import { useEffect, useState } from "react";
-// import { ToastContainer, toast } from "react-toastify";
-// import "react-toastify/dist/ReactToastify.css";
-
-// interface Booking {
-//   id: number;
-//   user_id: number;
-//   therapist_id: number;
-//   session_date: string;
-//   booking_status: string;
-//   session_notes?: string;
-//   meet_link?: string;
-// }
-
-// const Bookings = ({ therapistId }: { therapistId: number }) => {
-//   const [bookings, setBookings] = useState<Booking[]>([]);
-//   const [loading, setLoading] = useState<boolean>(true);
-//   const [error, setError] = useState<string | null>(null);
-
-//   useEffect(() => {
-//     if (!therapistId) {
-//       setError("Therapist ID is missing. Unable to fetch bookings.");
-//       setLoading(false);
-//       return;
-//     }
-
-//     const fetchBookings = async () => {
-//       setLoading(true);
-//       setError(null);
-    
-//       try {
-//         console.log("Fetching bookings for therapist ID:", therapistId);
-//         const response = await fetch(
-//           `https://ai-mentalhealthplatform.onrender.com/api/bookings?therapist_id=${therapistId}`
-//         );
-    
-//         if (!response.ok) {
-//           throw new Error(`Failed to fetch bookings: ${response.statusText}`);
-//         }
-    
-//         const data: Booking[] = await response.json();
-//         console.log("Raw API Data:", data);
-    
-//         if (!Array.isArray(data)) {
-//           setError("Invalid data format received.");
-//           return;
-//         }
-    
-//         if (data.length === 0) {
-//           setBookings([]);
-//           return;
-//         }
-        
-//         const today = new Date();
-//         const filteredData = data.filter(
-//           (booking) => new Date(booking.session_date) >= today
-//         );
-//         console.log("Filtered Bookings:", filteredData);
-//         setBookings(filteredData);
-//       } catch (error) {
-//         console.error("Error fetching bookings:", error);
-//         setError(error instanceof Error ? error.message : "An unknown error occurred.");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchBookings();
-//   }, [therapistId]);
-
-//   const createMeetLink = (userId: number, sessionDate: string) => {
-//     return `https://meet.google.com/new?authuser=${userId}&date=${encodeURIComponent(sessionDate)}`;
-//   };
-
-//   const sendMeetLink = async (bookingId: number, meetLink: string) => {
-//     if (!bookingId || !meetLink) {
-//       toast.error("Booking ID and Meet link are required.", { position: "top-right" });
-//       return;
-//     }
-
-//     console.log("Sending Meet Link - Booking ID:", bookingId, "Meet Link:", meetLink);
-
-//     try {
-//       const response = await fetch(`http://localhost:8000/api/send-meet-link`, {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({ bookingId, meetLink }),
-//       });
-
-//       const responseData = await response.json();
-//       console.log("Backend Response:", responseData);
-
-//       if (!response.ok) {
-//         throw new Error(responseData.message || responseData.error || "Failed to send Meet link.");
-//       }
-
-//       toast.success(`Meet link sent successfully for booking ${bookingId}`, { position: "top-right" });
-//     } catch (error) {
-//       console.error("Failed to send Meet link:", error);
-//       toast.error("Failed to send Meet link. Please try again.", { position: "top-right" });
-//     }
-//   };
-
-//   return (
-//     <div className="max-w-6xl mx-auto p-6 bg-green-100 rounded-lg shadow-lg">
-//       <h2 className="text-2xl font-bold text-green-800 text-center mb-6">Booked Sessions</h2>
-
-//       {loading && <p className="text-green-700 text-center font-semibold">Loading bookings...</p>}
-//       {error && <p className="text-red-500 text-center font-semibold">Error: {error}</p>}
-
-//       {!loading && !error && bookings.length === 0 && (
-//         <p className="text-green-700 text-center font-semibold">No bookings yet.</p>
-//       )}
-
-//       {!loading && !error && bookings.length > 0 && (
-//         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-//           {bookings.map((booking) => {
-//             const meetLink = booking.meet_link || createMeetLink(booking.user_id, booking.session_date);
-
-//             return (
-//               <div key={booking.id} className="p-4 bg-white border-l-4 border-green-500 rounded-lg shadow-md">
-//                 <p>
-//                   <strong className="text-green-900">Date:</strong>{" "}
-//                   {new Date(booking.session_date).toLocaleDateString()}
-//                 </p>
-//                 <p>
-//                   <strong className="text-green-900">User ID:</strong> {booking.user_id}
-//                 </p>
-//                 <p>
-//                   <strong className="text-green-900">Status:</strong>
-//                   <span
-//                     className={`ml-2 px-2 py-1 rounded text-white ${
-//                       booking.booking_status === "confirmed" ? "bg-green-600" : "bg-yellow-500"
-//                     }`}
-//                   >
-//                     {booking.booking_status}
-//                   </span>
-//                 </p>
-//                 <p>
-//                   <strong className="text-green-900">Notes:</strong> {booking.session_notes || "No notes available"}
-//                 </p>
-
-//                 <a href={meetLink} target="_blank" rel="noopener noreferrer">
-//                   <button className="mt-3 w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded">
-//                     Join Google Meet
-//                   </button>
-//                 </a>
-
-//                 <button
-//                   className="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
-//                   onClick={() => sendMeetLink(booking.id, meetLink)}
-//                 >
-//                   Send Meet Link to User
-//                 </button>
-//               </div>
-//             );
-//           })}
-//         </div>
-//       )}
-//       <ToastContainer />
-//     </div>
-//   );
-// };
-
-// export default Bookings;
-
-
 import { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -204,7 +37,6 @@ const TherapistsSession = () => {
           return;
         }
 
-        // Extract the therapist_id from the first booking and filter by it
         const filteredBookings = data.filter((booking) => booking.therapist_id === data[0]?.therapist_id);
         setBookings(filteredBookings);
       } catch (error) {
@@ -218,12 +50,19 @@ const TherapistsSession = () => {
     fetchBookings();
   }, []);
 
-  // Function to create a Google Meet link
   const createMeetLink = (userId: number, sessionDate: string) => {
     return `https://meet.google.com/new?authuser=${userId}&date=${encodeURIComponent(sessionDate)}`;
   };
 
-  // Function to send the Meet link to the user
+  const handleJoinSession = (bookingId: number) => {
+    setBookings(bookings.map(booking => 
+      booking.id === bookingId 
+        ? { ...booking, booking_status: "completed" } 
+        : booking
+    ));
+    toast.success("Session marked as completed!", { position: "top-right" });
+  };
+
   const sendMeetLink = async (bookingId: number, meetLink: string) => {
     if (!bookingId || !meetLink) {
       toast.error("Booking ID and Meet link are required.", { position: "top-right" });
@@ -254,65 +93,125 @@ const TherapistsSession = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-blue-100 rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold text-blue-800 text-center mb-6">Therapist Sessions</h2>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl shadow-xl p-6 sm:p-8">
+        <h2 className="text-3xl font-bold text-green-800 text-center mb-2">Upcoming Therapy Sessions</h2>
+        <p className="text-green-600 text-center mb-8">Manage your patient appointments and meetings</p>
 
-      {loading && <p className="text-blue-700 text-center font-semibold">Loading bookings...</p>}
-      {error && <p className="text-red-500 text-center font-semibold">Error: {error}</p>}
+        {loading && (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+          </div>
+        )}
+        
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
+            <p className="text-red-700 font-medium">Error loading bookings:</p>
+            <p className="text-red-600">{error}</p>
+          </div>
+        )}
 
-      {!loading && !error && bookings.length === 0 && (
-        <p className="text-blue-700 text-center font-semibold">No bookings available.</p>
-      )}
+        {!loading && !error && bookings.length === 0 && (
+          <div className="text-center py-12">
+            <div className="mx-auto h-24 w-24 text-green-400 mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-green-800">No upcoming sessions</h3>
+            <p className="mt-1 text-green-600">You don't have any bookings scheduled at this time.</p>
+          </div>
+        )}
 
-      {!loading && !error && bookings.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {bookings.map((booking) => {
-            const meetLink = booking.meet_link || createMeetLink(booking.user_id, booking.session_date);
+        {!loading && !error && bookings.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {bookings.map((booking) => {
+              const meetLink = booking.meet_link || createMeetLink(booking.user_id, booking.session_date);
+              const sessionDate = new Date(booking.session_date);
+              const formattedDate = sessionDate.toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+              });
 
-            return (
-              <div key={booking.id} className="p-4 bg-white border-l-4 border-blue-500 rounded-lg shadow-md">
-                <p>
-                  <strong className="text-blue-900">Date:</strong>{" "}
-                  {new Date(booking.session_date).toLocaleDateString()}
-                </p>
-                <p>
-                  <strong className="text-blue-900">Time:</strong> {booking.session_time}
-                </p>
-                <p>
-                  <strong className="text-blue-900">User ID:</strong> {booking.user_id}
-                </p>
-                <p>
-                  <strong className="text-blue-900">Status:</strong>
-                  <span
-                    className={`ml-2 px-2 py-1 rounded text-white ${
-                      booking.booking_status === "confirmed" ? "bg-green-600" : "bg-yellow-500"
-                    }`}
-                  >
-                    {booking.booking_status}
-                  </span>
-                </p>
-                <p>
-                  <strong className="text-blue-900">Notes:</strong> {booking.session_notes || "No notes available"}
-                </p>
+              return (
+                <div key={booking.id} className="bg-white rounded-xl shadow-md overflow-hidden border border-green-100 hover:shadow-lg transition-shadow duration-300">
+                  <div className="p-5">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="text-lg font-bold text-green-900">{formattedDate}</h3>
+                        <p className="text-green-700 font-medium">{booking.session_time}</p>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        booking.booking_status === "completed" 
+                          ? "bg-green-100 text-green-800" 
+                          : booking.booking_status === "confirmed" 
+                            ? "bg-amber-100 text-amber-800" 
+                            : "bg-gray-100 text-gray-800"
+                      }`}>
+                        {booking.booking_status}
+                      </span>
+                    </div>
 
-                <a href={meetLink} target="_blank" rel="noopener noreferrer">
-                  <button className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
-                    Join Google Meet
-                  </button>
-                </a>
+                    <div className="space-y-3 mt-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Client ID</p>
+                        <p className="text-gray-800 font-semibold">{booking.user_id}</p>
+                      </div>
+                      
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Session Notes</p>
+                        <p className="text-gray-800">
+                          {booking.session_notes || <span className="text-gray-400">No notes provided</span>}
+                        </p>
+                      </div>
+                    </div>
 
-                <button
-                  className="mt-2 w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded"
-                  onClick={() => sendMeetLink(booking.id, meetLink)}
-                >
-                  Send Meet Link to User
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
-      <ToastContainer />
+                    <div className="mt-6 space-y-3">
+                      <a 
+                        href={meetLink} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        onClick={() => handleJoinSession(booking.id)}
+                        className="block w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-2 px-4 rounded-lg text-center transition-all duration-200 shadow-md hover:shadow-lg"
+                      >
+                        Join Session
+                      </a>
+                      
+                      <button
+                        onClick={() => sendMeetLink(booking.id, meetLink)}
+                        disabled={booking.booking_status === "completed"}
+                        className={`w-full font-semibold py-2 px-4 rounded-lg text-center transition-all duration-200 ${
+                          booking.booking_status === "completed"
+                            ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                            : "bg-white border-2 border-green-500 text-green-600 hover:bg-green-50"
+                        }`}
+                      >
+                        {booking.booking_status === "completed" ? "Session Completed" : "Send Meeting Link"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <ToastContainer 
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        toastClassName="shadow-lg"
+        progressClassName="bg-green-500"
+      />
     </div>
   );
 };

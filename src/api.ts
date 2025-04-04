@@ -1,59 +1,24 @@
-export const createPaymentIntent = async (amount: number) => {
-  // 🔹 Retrieve `userId` and `token` from localStorage
-  const userId = localStorage.getItem("userId");
-  const token = localStorage.getItem("token");
+// In ../api.ts
+export const createStripePaymentIntent = async (data: {
+  userId: number;
+  sessionId: number;
+  amount: number;
+  currency: string;
+  paymentStatus: string;
+  description?: string;
+  metadata?: Record<string, string | number | boolean>;
+}): Promise<string> => {
+  const response = await fetch("https://ai-mentalhealthplatform.onrender.com/api/payments/create-payment-intent", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
 
-  if (!userId || !token) {
-    throw new Error("❌ User ID or Token is missing in localStorage.");
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to create payment intent");
   }
 
-  try {
-    // 🔹 Fetch `sessionId` from the backend
-    const sessionResponse = await fetch(`https://ai-mentalhealthplatform.onrender.com/api/session/${userId}`, {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${token}`, // Send token for authentication
-        "Content-Type": "application/json"
-      },
-    });
-
-    if (!sessionResponse.ok) {
-      throw new Error("❌ Failed to fetch session ID.");
-    }
-
-    const sessionData = await sessionResponse.json();
-    const sessionId = sessionData.sessionId;
-
-    if (!sessionId) {
-      throw new Error("❌ Session ID is missing from backend response.");
-    }
-
-    // 🔹 Proceed to create payment intent
-    const paymentResponse = await fetch("https://ai-mentalhealthplatform.onrender.com/api/payments/create-payment-intent", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${token}`, // Include token
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        amount,
-        currency: "usd",
-        userId,
-        sessionId,
-      }),
-    });
-
-    if (!paymentResponse.ok) {
-      const errorData = await paymentResponse.json();
-      console.error("❌ Failed to create payment intent:", errorData);
-      throw new Error(errorData.error || "Failed to create payment intent.");
-    }
-
-    const data = await paymentResponse.json();
-    return data.clientSecret;
-    
-  } catch (error) {
-    console.error("❌ Error in createPaymentIntent:", error);
-    throw error;
-  }
+  const { clientSecret } = await response.json();
+  return clientSecret;
 };

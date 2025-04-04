@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { FaBars, FaTimes, FaCalendar, FaHeadSideVirus, FaComments, FaCog, FaSignOutAlt } from "react-icons/fa";
+import { FaBars, FaTimes, FaCalendar, FaHeadSideVirus, FaComments, FaCog, FaSignOutAlt, FaCreditCard } from "react-icons/fa";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -20,8 +20,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
   return (
     <div 
-      className={`fixed left-0 top-16 bg-green-900 text-white p-5 flex flex-col 
-      ${isOpen ? "w-64" : "w-20"} h-[calc(100vh-4rem)] transition-all duration-300 shadow-lg overflow-y-auto`}
+      className={`absolute left-0 top-16 bg-green-900 text-white p-5 flex flex-col min-h-screen
+      ${isOpen ? "w-64" : "w-20"} h-screen  transition-all duration-300 shadow-lg overflow-y-auto `} // Changed to absolute positioning
+     
     >
       {/* Toggle Button */}
       <button 
@@ -45,6 +46,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         </Link>
         <Link to="/chatbot" className="flex items-center gap-3 p-2 rounded hover:bg-green-700 transition">
           <FaComments size={24} /> <span className={`${isOpen ? "inline" : "hidden"} transition-all`}>Chatbot</span>
+        </Link>
+        <Link to="/therapist-payments/:id" className="flex items-center gap-3 p-2 rounded hover:bg-green-700 transition">
+          <FaCreditCard size={24} /> <span className={`${isOpen ? "inline" : "hidden"} transition-all`}>Payments</span>
         </Link>
         <Link to="/settings" className="flex items-center gap-3 p-2 rounded hover:bg-green-700 transition">
           <FaCog size={24} /> <span className={`${isOpen ? "inline" : "hidden"} transition-all`}>Settings</span>

@@ -316,9 +316,9 @@ const BookSession: React.FC = () => {
   const timeSlots = [
     { label: "08:00-10:00", value: "08:00:00" },
     { label: "11:00-13:00", value: "11:00:00" },
-    { label: "14:00-17:00", value: "14:00:00" }
+    { label: "14:00-17:00", value: "14:00:00" },
+    { label: "17:00-19:00", value: "17:00:00" } // Added new time slot
   ];
-  
   
   const getAvailableTimeSlots = () => {
     const now = dayjs().tz("Africa/Nairobi");
@@ -326,20 +326,28 @@ const BookSession: React.FC = () => {
     const bookedSlots = JSON.parse(localStorage.getItem("bookedSlots") || "{}");
     const selectedDateStr = dayjs(selectedDate).format("YYYY-MM-DD");
   
-    return timeSlots.filter(({ value }) => {
-      const startHour = parseInt(value.split(":")[0]); // Extract full hour
+    return timeSlots.map(({ label, value }) => {
+      const startHour = parseInt(value.split(":")[0]);
       const slotTime = dayjs(selectedDate)
         .tz("Africa/Nairobi")
         .hour(startHour)
         .minute(0)
         .second(0);
-  
-      if (today && slotTime.isBefore(now)) return false; // Remove past slots
-      if (bookedSlots[selectedDateStr]?.includes(value)) return false; // Remove booked slots
-      return true;
+      
+      // Check if slot is booked
+      const isBooked = bookedSlots[selectedDateStr]?.includes(value);
+      
+      // Check if slot is in the past (only for today)
+      const isPast = today && slotTime.isBefore(now);
+      
+      return {
+        label,
+        value,
+        disabled: isPast || isBooked,
+        booked: isBooked
+      };
     });
   };
-  
   
   const handleConfirmBooking = async () => {
     if (!selectedDate || !selectedTime) {
@@ -359,7 +367,7 @@ const BookSession: React.FC = () => {
       therapist_name: therapist.full_name,
       specialization: therapist.specialization,
       session_date: formattedDate,
-      session_time: formattedTime,  // Ensure backend receives "HH:mm:ss"
+      session_time: formattedTime,
       booking_status: "Pending",
     };
   
@@ -381,6 +389,14 @@ const BookSession: React.FC = () => {
         throw new Error(errorData.error || "Failed to book session.");
       }
   
+      // Update local storage to mark this slot as booked
+      const bookedSlots = JSON.parse(localStorage.getItem("bookedSlots") || "{}");
+      if (!bookedSlots[formattedDate]) {
+        bookedSlots[formattedDate] = [];
+      }
+      bookedSlots[formattedDate].push(formattedTime);
+      localStorage.setItem("bookedSlots", JSON.stringify(bookedSlots));
+  
       toast.success("Session booked successfully!");
       navigate("/book-payment", {
         state: {
@@ -398,7 +414,6 @@ const BookSession: React.FC = () => {
       setIsBooking(false);
     }
   };
-  
   
   return (
     <motion.div
@@ -425,23 +440,44 @@ const BookSession: React.FC = () => {
 
       <div className="mt-6">
         <label className="flex items-center gap-2 text-sm mb-2"><Calendar className="text-green-500" /> Select Date</label>
-        <DatePicker selected={selectedDate} onChange={(date) => setSelectedDate(date)} minDate={new Date()} className="p-2 border rounded w-full" />
+        <DatePicker 
+          selected={selectedDate} 
+          onChange={(date) => {
+            setSelectedDate(date);
+            setSelectedTime(""); // Reset time when date changes
+          }} 
+          minDate={new Date()} 
+          className="p-2 border rounded w-full" 
+        />
       </div>
 
       <div className="mt-4">
         <label className="flex items-center gap-2 text-sm mb-2"><Clock className="text-green-500" /> Select Time Slot</label>
-        <select className="p-2 border rounded w-full" value={selectedTime} onChange={(e) => setSelectedTime(e.target.value)}>
-  <option value="">Select Time</option>
-  {getAvailableTimeSlots().map(({ value }) => (
-    <option key={value} value={value} disabled={selectedTime === value}>
-      {value}
-    </option>
-  ))}
-</select>
-
+        <select 
+          className="p-2 border rounded w-full" 
+          value={selectedTime} 
+          onChange={(e) => setSelectedTime(e.target.value)}
+        >
+          <option value="">Select Time</option>
+          {getAvailableTimeSlots().map(({ label, value, disabled, booked }) => (
+            <option 
+              key={value} 
+              value={disabled ? "" : value} 
+              disabled={disabled}
+              className={disabled ? "text-gray-400" : ""}
+            >
+              {booked ? `${label} (Booked)` : label}
+              {disabled && !booked ? " (Not available)" : ""}
+            </option>
+          ))}
+        </select>
       </div>
 
-      <button className="w-full mt-4 py-2 bg-green-500 text-white rounded flex justify-center items-center gap-2 hover:bg-green-600 transition" onClick={handleConfirmBooking} disabled={isBooking}>
+      <button 
+        className="w-full mt-4 py-2 bg-green-500 text-white rounded flex justify-center items-center gap-2 hover:bg-green-600 transition" 
+        onClick={handleConfirmBooking} 
+        disabled={isBooking || !selectedTime}
+      >
         {isBooking ? <Loader className="animate-spin" /> : "Confirm Booking"}
       </button>
     </motion.div>
@@ -449,6 +485,3 @@ const BookSession: React.FC = () => {
 };
 
 export default BookSession;
-
-
-

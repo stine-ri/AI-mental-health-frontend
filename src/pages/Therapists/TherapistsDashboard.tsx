@@ -20,7 +20,7 @@ const Dashboard: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
           <StatsCard
             title="Total Patients"
-            value="1.2K"
+            value="16"
             percentage="8%"
             isPositive={true}
             icon={<Users size={32} />}

@@ -1,12 +1,9 @@
 
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
-// import Services from "./pages/Services";
-// import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import CheckoutPage from "./Components/CheckoutPage";
 import Header from "./Components/Header";
 import Chatbot from "./Components/Chatbot";
 import Footer from "./Components/Footer";
@@ -17,7 +14,7 @@ import BookTraining from "./Components/BookTraining";
 import UserDashboard from './Components/UserDashboard';
 import Sidebar from "./Components/Sidebar";
 import { Toaster } from "react-hot-toast";
-import UserPayment from "./Components/Payments";
+import UserPayment from "./Components/UserPayments";
 import Session from "./Components/session";
 import BookSession from "./Components/BookSession";
 import Appointment from "./Components/Appointments";
@@ -45,6 +42,10 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ForgotPassword from "./Components/ForgotPassword";
 import ResetPassword from "./Components/ResetPassword";
+import TherapistPayments from "./Components/Therapists/TherapitsPayments";
+import UserPayments from "./Components/UserPayments";
+import CheckoutPage from "./Components/CheckoutPage";
+import Reviews from "./Components/Reviews";
 function App() {
 
   return (
@@ -54,8 +55,7 @@ function App() {
       <Header />
       <Routes>
         <Route path="/" element={<Home />} />
-        {/* <Route path="/services" element={<Services />} />
-        <Route path="/about" element={<About />} /> */}
+     
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -81,7 +81,7 @@ function App() {
         <Route path="/book-payment" element={<BookPayment />} />
         <Route path="/confirmation" element={<Confirmation />} />
         <Route path="/user-bookings" element={<UserBookings />} />
-        <Route path="/therapist-bookings" element={<TherapistsBookings therapistId={3} />} />
+        <Route path="/therapist-bookings" element={<TherapistsBookings />} />
         <Route path="/appointments-requests" element={<AppointmentsRequests  />} />
         <Route path="/patient-overview/:id" element={<PatientOverview />} />
         <Route path="/user-message" element={<UserMessage />} />
@@ -90,6 +90,16 @@ function App() {
         <Route path="/doctor-without-booking" element={<DoctorsListWithoutBooking />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:id" element={<ResetPassword />} />
+        <Route path="/therapist-payments/:id" element={<TherapistPayments />} />
+        <Route path="/user-payments/:id" element={<UserPayments />} />
+        
+        <Route path="/checkout" element={<CheckoutPage amount={100} />} />
+        <Route path="/reviews" element={<Reviews />} />
+
+        
+        
+
+  
 
         <Route
            path="/checkout"

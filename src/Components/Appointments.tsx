@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
-// Define Interfaces
 interface Appointment {
   id: number;
   user_id: number;
   therapist_id: number;
-  session_date: string;
+  session_date: string; // "YYYY-MM-DD"
+  session_time: string; // "HH:MM:SS"
   booking_status: string;
   created_at: string;
 }
@@ -30,10 +32,41 @@ const Appointments = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Retrieve logged-in user ID from localStorage
   const storedUser = localStorage.getItem("user");
   const loggedUser = storedUser ? JSON.parse(storedUser) : null;
   const userId = loggedUser?.user?.id;
+
+  // Format time in 12-hour format with AM/PM
+  const formatTime = (timeStr: string) => {
+    try {
+      const [hours, minutes] = timeStr.split(':');
+      const hourNum = parseInt(hours, 10);
+      const period = hourNum >= 12 ? 'PM' : 'AM';
+      const displayHour = hourNum % 12 || 12;
+      return `${displayHour}:${minutes} ${period}`;
+    } catch (err) {
+      console.error("Error formatting time:", err);
+      return timeStr;
+    }
+  };
+
+  // Format date as "MMM DD, YYYY" without timezone conversion
+  const formatDate = (dateStr: string) => {
+    try {
+      // Parse date directly from YYYY-MM-DD format
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${months[month - 1]} ${day}, ${year}`;
+    } catch (err) {
+      console.error("Error formatting date:", err);
+      return dateStr;
+    }
+  };
+
+  // Combine formatted date and time
+  const formatSessionDateTime = (dateStr: string, timeStr: string) => {
+    return `${formatDate(dateStr)}, ${formatTime(timeStr)}`;
+  };
 
   useEffect(() => {
     if (!userId) {
@@ -46,9 +79,7 @@ const Appointments = () => {
 
   const fetchAppointments = async (userId: number) => {
     try {
-      console.log("📥 Fetching Appointments for User ID:", userId);
       const token = localStorage.getItem("token");
-
       if (!token) throw new Error("User not logged in");
 
       const response = await fetch(`https://ai-mentalhealthplatform.onrender.com/api/bookings?userId=${userId}`, {
@@ -62,9 +93,15 @@ const Appointments = () => {
       if (!response.ok) throw new Error("Failed to fetch appointments");
 
       const data: Appointment[] = await response.json();
-      console.log("✅ Fetched Appointments:", data);
+      
+      // Debug log to verify dates
+      console.log("Raw booking data:", data.map(a => ({
+        id: a.id,
+        storedDate: a.session_date,
+        formattedDate: formatDate(a.session_date),
+        time: a.session_time
+      })));
 
-      // Fetch therapist details only for the fetched appointments
       const therapistIds = [...new Set(data.map((appt) => appt.therapist_id))];
       const therapistDetails = await Promise.all(therapistIds.map((id) => fetchTherapistDetails(id)));
 
@@ -75,7 +112,7 @@ const Appointments = () => {
 
       setAppointments(enrichedAppointments);
     } catch (err) {
-      console.error("❌ Error Fetching Appointments:", err);
+      console.error("Error Fetching Appointments:", err);
       setError((err as Error).message);
     } finally {
       setLoading(false);
@@ -88,7 +125,7 @@ const Appointments = () => {
       if (!response.ok) return null;
       return await response.json();
     } catch (err) {
-      console.error(`❌ Error fetching therapist with ID ${id}:`, err);
+      console.error(`Error fetching therapist with ID ${id}:`, err);
       return null;
     }
   };
@@ -105,71 +142,169 @@ const Appointments = () => {
 
       setAppointments((prev) => prev.filter((appt) => appt.id !== id));
     } catch (err) {
-      console.error("❌ Error Deleting Appointment:", err);
+      console.error("Error Deleting Appointment:", err);
       alert((err as Error).message);
     }
   };
 
-  if (loading) return <p className="text-center text-gray-500">Loading...</p>;
-  if (error) return <p className="text-center text-red-500">{error}</p>;
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+    doc.text("My Appointments", 14, 10);
+
+    autoTable(doc, {
+      startY: 20,
+      head: [["Therapist Name", "Specialization", "Experience (Years)", "Phone", "Session Date", "Status"]],
+      body: appointments.map((appt) => [
+        appt.therapist_details?.full_name || "N/A",
+        appt.therapist_details?.specialization || "N/A",
+        appt.therapist_details?.experience_years || "N/A",
+        appt.therapist_details?.contact_phone || "N/A",
+        formatSessionDateTime(appt.session_date, appt.session_time),
+        appt.booking_status,
+      ]),
+    });
+
+    doc.save("appointments.pdf");
+  };
+
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="bg-white p-6 rounded-xl shadow-md max-w-md w-full text-center">
+        <div className="text-red-500 mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h3 className="text-xl font-medium text-gray-800 mb-2">Error Loading Appointments</h3>
+        <p className="text-gray-600 mb-4">{error}</p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition"
+        >
+          Try Again
+        </button>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-100 flex justify-center items-center p-4">
-      <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-5xl">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">My Appointments</h2>
-
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border-collapse">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="border px-4 py-2">Therapist Name</th>
-                <th className="border px-4 py-2">Specialization</th>
-                <th className="border px-4 py-2">Experience (Years)</th>
-                <th className="border px-4 py-2">Phone</th>
-                <th className="border px-4 py-2">Availability</th>
-                <th className="border px-4 py-2">Session Date</th>
-                <th className="border px-4 py-2">Booking Time</th>
-                <th className="border px-4 py-2">Status</th>
-                <th className="border px-4 py-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {appointments.length === 0 ? (
-                <tr>
-                  <td colSpan={9} className="text-center p-4 text-gray-500">
-                    No appointments found.
-                  </td>
-                </tr>
-              ) : (
-                appointments.map((appointment) => (
-                  <tr key={appointment.id} className="hover:bg-gray-100">
-                    <td className="border px-4 py-2 text-center">{appointment.therapist_details?.full_name || "N/A"}</td>
-                    <td className="border px-4 py-2 text-center">{appointment.therapist_details?.specialization || "N/A"}</td>
-                    <td className="border px-4 py-2 text-center">{appointment.therapist_details?.experience_years || "N/A"}</td>
-                    <td className="border px-4 py-2 text-center">{appointment.therapist_details?.contact_phone || "N/A"}</td>
-                    <td className="border px-4 py-2 text-center">
-                      {appointment.therapist_details?.availability ? "Available" : "Not Available"}
-                    </td>
-                    <td className="border px-4 py-2 text-center">{appointment.session_date}</td>
-                    <td className="border px-4 py-2 text-center">{new Date(appointment.created_at).toLocaleString()}</td>
-                    <td className="border px-4 py-2 text-center font-semibold text-blue-600">{appointment.booking_status}</td>
-                    <td className="border px-4 py-2 text-center">
-                    <button className="bg-green-500 text-white w-24 h-10 rounded text-xs sm:text-sm hover:bg-green-600 transform hover:scale-105 transition-all duration-300 ease-in-out">
-                       Edit
-                        </button>
-                       <button
-                     onClick={() => handleDelete(appointment.id)}
-                     className="bg-green-500 text-white w-24 h-10 rounded text-xs sm:text-sm hover:bg-green-600 transform hover:scale-105 transition-all duration-300 ease-in-out"
-                             >
-                         Delete
-                       </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">My Appointments</h1>
+            <p className="text-gray-600 mt-1">
+              {appointments.length} upcoming {appointments.length === 1 ? 'appointment' : 'appointments'}
+            </p>
+          </div>
+          <button
+            onClick={downloadPDF}
+            className="mt-4 md:mt-0 flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+            Export to PDF
+          </button>
         </div>
+
+        {appointments.length === 0 ? (
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="px-4 py-5 sm:p-6 text-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <h3 className="mt-2 text-lg font-medium text-gray-900">No appointments scheduled</h3>
+              <p className="mt-1 text-sm text-gray-500">You don't have any upcoming appointments yet.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Therapist
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Specialization
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Experience
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Session Date
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {appointments.map((appointment) => (
+                    <tr key={appointment.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                            <span className="text-green-600 font-medium">
+                              {appointment.therapist_details?.full_name?.charAt(0) || 'T'}
+                            </span>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">
+                              {appointment.therapist_details?.full_name || "N/A"}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {appointment.therapist_details?.contact_phone || "N/A"}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {appointment.therapist_details?.specialization || "N/A"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {appointment.therapist_details?.experience_years || "N/A"} years
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatSessionDateTime(appointment.session_date, appointment.session_time)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          appointment.booking_status === 'confirmed' 
+                            ? 'bg-green-100 text-green-800' 
+                            : appointment.booking_status === 'pending'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {appointment.booking_status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button
+                          onClick={() => handleDelete(appointment.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Cancel
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

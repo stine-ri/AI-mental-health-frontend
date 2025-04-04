@@ -3,149 +3,214 @@ import AdminLayout from "../../Components/Admin/AdminLayout";
 
 interface Payment {
   id: number;
-  userId: number;
-  sessionId: number;
-  amount: number;
-  currency: string;
-  paymentStatus: string;
-  paymentDate: string;
-  stripePaymentId: string;
+  merchantRequestId: string;
+  checkoutRequestId: string;
+  phoneNumber: string;
+  amount: string;
+  referenceCode: string;
+  description: string;
+  transactionDate: string;
+  mpesaReceiptNumber: string | null;
+  resultCode: string | null;
+  resultDescription: string | null;
+  isComplete: boolean;
+  isSuccessful: boolean;
 }
 
 const Payments = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
-  const [newPayment, setNewPayment] = useState({
-    userId: "",
-    sessionId: "",
-    amount: "",
-    currency: "usd",
-    paymentStatus: "pending",
-    paymentDate: "",
-    stripePaymentId: "",
-  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
     fetchPayments();
   }, []);
 
-  // Fetch Payments from Backend
   const fetchPayments = async () => {
+    setLoading(true);
     try {
-      console.log("Fetching payments...");
-      const response = await fetch("https://ai-mentalhealthplatform.onrender.com/api/payments", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
+      const response = await fetch("http://localhost:8000/api/transactions");
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       const data = await response.json();
-      console.log("Payments fetched successfully:", data);
-
-      // Convert snake_case to camelCase
-      const formattedPayments = data.map((payment: { 
-        id: number; 
-        user_id: number; 
-        session_id: number; 
-        amount: number; 
-        currency: string; 
-        payment_status: string; 
-        payment_date: string; 
-        stripe_payment_id: string; 
-      }) => ({
-        id: payment.id,
-        userId: payment.user_id,
-        sessionId: payment.session_id,
-        amount: payment.amount,
-        currency: payment.currency,
-        paymentStatus: payment.payment_status,
-        paymentDate: payment.payment_date,
-        stripePaymentId: payment.stripe_payment_id,
-      }));
-
-      setPayments(formattedPayments);
+      setPayments(data.data);
     } catch (error) {
-      console.error("Error fetching payments:", error);
-      if (error instanceof Error) {
-        alert(`Failed to fetch payments: ${error.message}`);
-      } else {
-        alert("Failed to fetch payments: An unknown error occurred.");
-      }
+      setError(error instanceof Error ? error.message : "Failed to fetch payments");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Create a New Payment
-  const handleCreate = async () => {
-    await fetch("https://ai-mentalhealthplatform.onrender.com/api/payments/create-payment-intent", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newPayment),
-    });
-    setNewPayment({ userId: "", sessionId: "", amount: "", currency: "usd", paymentStatus: "pending", paymentDate: "", stripePaymentId: "" });
-    fetchPayments();
+  const filteredPayments = payments.filter(payment => {
+    const matchesSearch = 
+      payment.phoneNumber.includes(searchTerm) ||
+      payment.amount.includes(searchTerm) ||
+      payment.referenceCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.description.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || 
+      (statusFilter === "complete" && payment.isComplete) ||
+      (statusFilter === "pending" && !payment.isComplete);
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this payment record?")) return;
+    try {
+      const response = await fetch(`http://localhost:8000/api/transactions/${id}`, { 
+        method: "DELETE" 
+      });
+      if (!response.ok) throw new Error("Failed to delete payment");
+      fetchPayments();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Deletion failed");
+    }
   };
 
-  // Delete a Payment
-  const handleDelete = async (id: number) => {
-    await fetch(`https://ai-mentalhealthplatform.onrender.com/api/payments/create-payment-intent/${id}`, { method: "DELETE" });
-    fetchPayments();
+  // New function to mark payment as complete (frontend only)
+  const handleMarkComplete = (id: number) => {
+    setPayments(prevPayments => 
+      prevPayments.map(payment => 
+        payment.id === id ? { ...payment, isComplete: true } : payment
+      )
+    );
+  };
+
+  const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    };
+    return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
   return (
     <AdminLayout>
-      <h2 className="text-2xl font-bold mb-4 text-center">Payments</h2>
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">Payment Records</h2>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <input type="number" placeholder="User ID" className="border p-2 w-full" value={newPayment.userId} onChange={(e) => setNewPayment({ ...newPayment, userId: e.target.value })} />
-        <input type="number" placeholder="Session ID" className="border p-2 w-full" value={newPayment.sessionId} onChange={(e) => setNewPayment({ ...newPayment, sessionId: e.target.value })} />
-        <input type="number" placeholder="Amount" className="border p-2 w-full" value={newPayment.amount} onChange={(e) => setNewPayment({ ...newPayment, amount: e.target.value })} />
-        <input type="date" className="border p-2 w-full" value={newPayment.paymentDate} onChange={(e) => setNewPayment({ ...newPayment, paymentDate: e.target.value })} />
-        <input type="text" placeholder="Stripe Payment ID" className="border p-2 w-full" value={newPayment.stripePaymentId} onChange={(e) => setNewPayment({ ...newPayment, stripePaymentId: e.target.value })} />
-        <select className="border p-2 w-full" value={newPayment.paymentStatus} onChange={(e) => setNewPayment({ ...newPayment, paymentStatus: e.target.value })}>
-          <option value="complete">Complete</option>
-          <option value="pending">Pending</option>
-          <option value="failed">Failed</option>
-        </select>
-        <button onClick={handleCreate} className="bg-green-600 text-white px-4 py-2 w-full">Add Payment</button>
-      </div>
+        {/* Filter Controls */}
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-6 border border-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Search Payments</label>
+              <input
+                type="text"
+                placeholder="Search by phone, amount, reference or description..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <select
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">All Statuses</option>
+                <option value="complete">Completed</option>
+                <option value="pending">Pending</option>
+              </select>
+            </div>
+            <div className="flex items-end">
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setStatusFilter("all");
+                }}
+                className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-md transition-colors text-sm font-medium"
+              >
+                Clear Filters
+              </button>
+            </div>
+          </div>
+        </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border border-gray-300 text-sm md:text-base">
-          <thead>
-            <tr className="bg-green-600 text-white border-b border-gray-300">
-              <th className="p-2 border-r">ID</th>
-              <th className="p-2 border-r">User ID</th>
-              <th className="p-2 border-r">Session ID</th>
-              <th className="p-2 border-r">Amount</th>
-              <th className="p-2 border-r">Currency</th>
-              <th className="p-2 border-r">Status</th>
-              <th className="p-2 border-r">Payment Date</th>
-              <th className="p-2 border-r">Stripe ID</th>
-              <th className="p-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {payments.map((payment) => (
-              <tr key={payment.id} className="border-b border-gray-300 text-center">
-                <td className="p-2 border-r">{payment.id}</td>
-                <td className="p-2 border-r">{payment.userId}</td>
-                <td className="p-2 border-r">{payment.sessionId}</td>
-                <td className="p-2 border-r">${payment.amount}</td>
-                <td className="p-2 border-r uppercase">{payment.currency}</td>
-                <td className={`p-2 border-r ${payment.paymentStatus === "complete" ? "text-green-600" : payment.paymentStatus === "failed" ? "text-red-600" : "text-yellow-600"}`}>
-                  {payment.paymentStatus}
-                </td>
-                <td className="p-2 border-r">{payment.paymentDate}</td>
-                <td className="p-2 border-r">{payment.stripePaymentId}</td>
-                <td className="p-2">
-                  <button onClick={() => handleDelete(payment.id)} className="bg-red-600 text-white px-4 py-1">Delete</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {loading && (
+          <div className="flex justify-center items-center h-32">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6">
+            <p className="font-bold">Error</p>
+            <p>{error}</p>
+          </div>
+        )}
+
+        {/* Payments Table */}
+        {!loading && !error && (
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-green-600">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Phone</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Amount</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Reference</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Description</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredPayments.length > 0 ? (
+                    filteredPayments.map((payment) => (
+                      <tr key={payment.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{payment.id}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{payment.phoneNumber}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${payment.amount}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900 max-w-[150px] truncate">{payment.referenceCode}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900 max-w-[200px] truncate">{payment.description}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatDate(payment.transactionDate)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            ${payment.isComplete ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                            {payment.isComplete ? 'Completed' : 'Pending'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                          {!payment.isComplete && (
+                            <button
+                              onClick={() => handleMarkComplete(payment.id)}
+                              className="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                            >
+                              Complete
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleDelete(payment.id)}
+                            className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={8} className="px-6 py-4 text-center text-sm text-gray-500">
+                        No payments found matching your criteria
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     </AdminLayout>
   );
