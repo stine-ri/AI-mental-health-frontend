@@ -6,3 +6,18 @@
 } */
 
 
+/* In your global CSS file (e.g., index.css) */
+body, html {
+  height: 100%;
+  margin: 0;
+}
+
+/* This will override the Register component's container */
+div[style*="backgroundImage"] {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+}
