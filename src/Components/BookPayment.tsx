@@ -372,7 +372,7 @@ const BookPayment: React.FC = () => {
   // Updated Stripe payment intent creation with required fields
   const createStripePaymentIntent = React.useCallback(async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/payments/create-payment-intent", {
+      const response = await fetch("https://ai-mentalhealthplatform.onrender.com/api/payments/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -434,7 +434,7 @@ const BookPayment: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/api/initiate", {
+      const response = await fetch("https://sandbox.safaricom.co.ke", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(paymentData),

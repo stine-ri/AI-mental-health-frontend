@@ -1,9 +1,9 @@
 
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import Home from "./pages/Home";
-import Contact from "./pages/Contact";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import Home from "./Components/Home";
+import Contact from "./Components/Contact";
+import Login from "./Components/Login";
+import Register from "./Components/Register";
 import Header from "./Components/Header";
 import Chatbot from "./Components/Chatbot";
 import Footer from "./Components/Footer";
@@ -92,15 +92,8 @@ function App() {
         <Route path="/reset-password/:id" element={<ResetPassword />} />
         <Route path="/therapist-payments/:id" element={<TherapistPayments />} />
         <Route path="/user-payments/:id" element={<UserPayments />} />
-        
         <Route path="/checkout" element={<CheckoutPage amount={100} />} />
         <Route path="/reviews" element={<Reviews />} />
-
-        
-        
-
-  
-
         <Route
            path="/checkout"
            element={<CheckoutPage amount={100} />} // Pass an amount (e.g., 100)
